@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intelligence Layer Demo</title>
+
+<style>
+body {margin:0;font-family:-apple-system,'Segoe UI',sans-serif;background:#F7F7F7;}
+.hidden {display:none;}
+
+.app {height:100vh;display:flex;flex-direction:column;}
+.topbar {height:60px;display:flex;justify-content:center;align-items:center;background:white;border-bottom:1px solid #ddd;}
+.content {flex:1;display:flex;justify-content:center;align-items:center;padding:30px;}
+.bottombar {height:80px;display:flex;justify-content:space-between;align-items:center;padding:0 30px;background:white;border-top:1px solid #ddd;}
+
+.btn {padding:10px 20px;border:1px solid #ccc;background:white;cursor:pointer;}
+.btn.next {background:#1C1C1C;color:#FBD200;border:none;}
+
+.lang-btn {background:#1C1C1C;color:#FBD200;padding:15px 30px;margin:10px;cursor:pointer;border:none;}
+
+.slide {display:none;}
+.slide.active {display:flex;flex-direction:column;gap:20px;}
+
+input {padding:10px;width:300px;margin:5px;border-radius:6px;border:1px solid #ccc;}
+
+.center-screen {
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+
+/* PRINT */
+@media print {
+
+  body {background:white;}
+
+  .app, #langScreen, #scenarioScreen {
+    display:none !important;
+  }
+
+  .page {
+    page-break-after:always;
+    padding:20mm;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- LANGUAGE -->
+<div id="langScreen" class="center-screen">
+  <h1>Kies je taal</h1>
+  <button onclick="setLang()" class="lang-btn">Nederlands</button>
+  <button onclick="setLang()" class="lang-btn">English</button>
+</div>
+
+<!-- SCENARIO -->
+<div id="scenarioScreen" class="center-screen hidden">
+  <h1>Scenario instellen</h1>
+
+  <input id="companyName" placeholder="Bedrijfsnaam">
+  <input id="companyDesc" placeholder="Omschrijving bedrijf">
+
+  <input id="personaName" placeholder="Naam persona">
+  <input id="personaRole" placeholder="Functie">
+
+  <input id="question" placeholder="Vraag voor Copilot">
+
+  <button onclick="start()" class="lang-btn">Start demo</button>
+</div>
+
+<!-- APP -->
+<div id="app" class="app hidden">
+
+<div class="topbar">
+  Microsoft Intelligence Layer
+</div>
+
+<div class="content">
+
+<div class="slide active">
+  <h1 id="title"></h1>
+  <p id="subtitle"></p>
+</div>
+
+<div class="slide">
+  <h2>Persona & Vraag</h2>
+  <p id="persona"></p>
+  <p id="q"></p>
+</div>
+
+<div class="slide"><h2>Copilot Analyse</h2></div>
+<div class="slide"><h2>Work IQ</h2></div>
+<div class="slide"><h2>Fabric IQ</h2></div>
+<div class="slide"><h2>Foundry IQ</h2></div>
+<div class="slide"><h2>Databronnen</h2></div>
+
+</div>
+
+<div class="bottombar">
+  <button onclick="prev()" class="btn">Vorige</button>
+  <button onclick="next()" class="btn next">Volgende</button>
+  <button onclick="exportPDF()" class="btn">Download PDF</button>
+</div>
+
+</div>
+
+<script>
+
+let current = 0;
+let slides = document.querySelectorAll(".slide");
+
+let scenario = {};
+
+function setLang(){
+  document.getElementById('langScreen').classList.add('hidden');
+  document.getElementById('scenarioScreen').classList.remove('hidden');
+}
+
+function start(){
+
+  scenario = {
+    company: {
+      name: document.getElementById('companyName').value,
+      desc: document.getElementById('companyDesc').value
+    },
+    persona: {
+      name: document.getElementById('personaName').value,
+      role: document.getElementById('personaRole').value
+    },
+    question: document.getElementById('question').value
+  };
+
+  document.getElementById('scenarioScreen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+
+  inject();
+}
+
+function inject(){
+  document.getElementById('title').innerText = scenario.company.name;
+  document.getElementById('subtitle').innerText = scenario.persona.role;
+
+  document.getElementById('persona').innerText =
+    scenario.persona.name + " — " + scenario.persona.role;
+
+  document.getElementById('q').innerText =
+    scenario.question;
+}
+
+function show(){
+  slides.forEach(s=>s.classList.remove('active'));
+  slides[current].classList.add('active');
+}
+
+function next(){
+  if(current < slides.length-1){
+    current++;
+    show();
+  }
+}
+
+function prev(){
+  if(current > 0){
+    current--;
+    show();
+  }
+}
+
+/* PDF EXPORT */
+function exportPDF(){
+  buildPrintView();
+  window.print();
+}
+
+function buildPrintView(){
+
+  let printHTML = `
+  <div class="page">
+    <h1>${scenario.company.name}</h1>
+    <p>${scenario.persona.role}</p>
+  </div>
+
+  <div class="page">
+    <h2>Vraag</h2>
+    <p>${scenario.question}</p>
+  </div>
+
+  <div class="page">
+    <h2>Analyse</h2>
+    <p>Copilot combineert Work, Fabric en Foundry IQ.</p>
+  </div>
+
+  <div class="page">
+    <h2>IQ Lagen</h2>
+    <p>Work IQ — Fabric IQ — Foundry IQ</p>
+  </div>
+
+  <div class="page">
+    <h2>Databronnen</h2>
+    <p>M365, ERP, AI Platform</p>
+  </div>
+  `;
+
+  let container = document.createElement("div");
+  container.innerHTML = printHTML;
+  document.body.appendChild(container);
+}
+
+</script>
+
+</body>
+</html>
